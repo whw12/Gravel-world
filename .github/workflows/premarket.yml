@@ -1,0 +1,51 @@
+name: 盘前报告
+
+on:
+  schedule:
+    # UTC 01:00 = 北京时间 09:00，周一至周五
+    # 注意：GitHub 免费版定时任务可能有 5-20 分钟延迟，且仓库 60 天无提交会自动停用
+    - cron: '0 1 * * 1-5'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: premarket
+  cancel-in-progress: false
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - name: 安装依赖
+        run: pip install -r cloud/requirements.txt
+
+      - name: 生成并推送报告
+        env:
+          MAIL_USER: 422745040@qq.com
+          MAIL_PASS: ${{ secrets.MAIL_PASS }}
+          MAIL_TO: 422745040@qq.com
+          MAIL_HOST: smtp.qq.com
+          MAIL_PORT: 465
+        run: python cloud/premarket_report.py
+
+      - name: 归档报告
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add cloud/reports
+          if git diff --cached --quiet; then
+            echo "无新增报告，跳过提交"
+          else
+            git commit -m "chore: 盘前报告 $(TZ=Asia/Shanghai date +%Y-%m-%d)"
+            git push
+          fi

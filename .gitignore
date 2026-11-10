@@ -1,0 +1,17 @@
+# 密钥，绝不入库
+.trae/skills/ifind-finance-data/mcp_config.json
+.trae/skills/ifind-finance-data/skill_env_config.json
+.env
+.env.*
+*.key
+*.pem
+
+# 备份与临时文件
+*.bak
+*.tmp
+__pycache__/
+*.pyc
+
+# 本地工具产物
+.trae-html-share-packages/
+a-share-index-bear-check-*/
